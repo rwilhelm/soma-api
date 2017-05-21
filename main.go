@@ -5,24 +5,22 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"reflect"
-	"regexp"
 	"strconv"
+	//"strings"
 	"time"
+
+	_ "github.com/lib/pq"
 )
 
 const (
-	DB_USER = "XXXUSERNAMEXXX"
-	DB_PASS = "XXXPASSWORDXXX"
-	DB_NAME = "soma_development"
-	PORT    = "3333"
+	DBUSER = "XXXUSERNAMEXXX"
+	DBPASS = "XXXPASSWORDXXX"
+	DBNAME = "soma_development"
+	PORT   = "3333"
 )
 
-var badTimestamp = regexp.MustCompile(`^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].[0-9][0-9][0-9][0-9][0-9][0-9]$`)
-var bts = "1495230019.084993"
-
 func msToTime(ms string) (time.Time, error) {
-	msInt, err := strconv.ParseInt(ms, 10, 64)
+	msInt, err := strconv.ParseInt(ms, 8, 64)
 	if err != nil {
 		return time.Time{}, err
 	}
@@ -31,41 +29,45 @@ func msToTime(ms string) (time.Time, error) {
 
 func main() {
 
-	dbinfo := fmt.Sprintf("user=%s dbname=%s password=%s sslmode=disable", DB_USER, DB_NAME, DB_PASS)
+	dbinfo := fmt.Sprintf("user=%s dbname=%s password=%s sslmode=disable", DBUSER, DBNAME, DBPASS)
 	db, err := sql.Open("postgres", dbinfo)
 
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
+	err = db.Ping()
+
+	if err != nil {
+		log.Fatal("[ERROR] Could not establish a connection with the database")
+		log.Fatal(err)
+	}
+
+	// The sql.DB should not have a lifetime beyond the scope of the function.
 	defer db.Close()
 
 	rows, err := db.Query("SELECT latitude, longitude, timestamp FROM location")
 
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
-	fmt.Println(reflect.TypeOf(dbinfo)) // => string
-	fmt.Println(reflect.TypeOf(db))     // => *sql.DB
-	fmt.Println(reflect.TypeOf(rows))   // => *sql.Rows
+	defer rows.Close()
 
 	for rows.Next() {
 
-		var latitude float64
-		var longitude float64
-		var timestamp float64
+		var (
+			latitude  float64
+			longitude float64
+			timestamp string
+		)
 
 		err = rows.Scan(&latitude, &longitude, &timestamp)
 		if err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 
-		if timestamp > 9999999999.999999 {
-			timestamp = timestamp / 1000
-		}
-
-		fmt.Printf("%3v | %3v | %3f\n", latitude, longitude, timestamp)
+		fmt.Printf("%3v | %3v | %3v\n", latitude, longitude, timestamp)
 	}
 
 	http.Handle("/", ApiHandler{db, indexHandler})
