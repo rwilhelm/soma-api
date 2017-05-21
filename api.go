@@ -3,12 +3,25 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"log"
 	"net/http"
 )
 
-func (api ApiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+//type apiHandler struct {}
+
+type apiError struct {
+	Tag     string `json:"-"`
+	Error   error  `json:"-"`
+	Message string `json:"error"`
+	Code    int    `json:"code"`
+}
+
+type api struct {
+	DB      *sql.DB
+	Handler func(w http.ResponseWriter, r *http.Request, db *sql.DB) *apiError
+}
+
+func (api apiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Headers for all responses
 	w.Header().Add("Content-Type", "application/json; charset=utf-8")
@@ -34,14 +47,6 @@ func (api ApiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) *apiError {
-	if r.URL.Path != "/" {
-		return &apiError{
-			"indexHandler url",
-			errors.New("Not found!"),
-			"Not found",
-			http.StatusNotFound,
-		}
-	}
 
 	err := db.Ping()
 	if err != nil {
@@ -54,4 +59,11 @@ func indexHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) *apiError 
 	}
 
 	return nil
+}
+
+func ExampleStripPrefix() {
+	// To serve a directory on disk (/tmp) under an alternate URL path
+	// (/tmpfiles/), use StripPrefix to modify the request URL's path before the
+	// FileServer sees it:
+	http.Handle("/tmpfiles/", http.StripPrefix("/tmpfiles/", http.FileServer(http.Dir("/tmp"))))
 }
