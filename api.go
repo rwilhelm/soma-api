@@ -8,18 +8,6 @@ import (
 	"net/http"
 )
 
-type apiError struct {
-	Tag     string `json:"-"`
-	Error   error  `json:"-"`
-	Message string `json:"error"`
-	Code    int    `json:"code"`
-}
-
-type ApiHandler struct {
-	DB      *sql.DB
-	Handler func(w http.ResponseWriter, r *http.Request, db *sql.DB) *apiError
-}
-
 func (api ApiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Headers for all responses
@@ -43,16 +31,6 @@ func (api ApiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("%s %s %s", r.RemoteAddr, r.Method, r.URL)
-}
-
-type Location struct {
-	Latitude  float64 `json:latitude`
-	Longitude float64 `json:longitude`
-	Timestamp float64 `json:timestamp`
-}
-
-type Response1 struct {
-	Location []string
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) *apiError {
