@@ -10,6 +10,8 @@ import (
 )
 
 const (
+	PRIV   = "/etc/letsencrypt/live/soma.uni-koblenz.de/privkey.pem"
+	CERT   = "/etc/letsencrypt/live/soma.uni-koblenz.de/cert.pem"
 	DBUSER = "XXXUSERNAMEXXX"
 	DBPASS = "XXXPASSWORDXXX"
 	DBNAME = "soma_development"
@@ -39,7 +41,20 @@ func main() {
 
 	api := api{db: db}
 
-	http.HandleFunc("/loc", api.allLocations)
+	// Get all locations
+	http.HandleFunc("/location", api.getAllLocations)
+
+	// Get locations of user
+	http.HandleFunc("/location/", api.getUserLocations)
+
+	// Get all trips
+	//http.HandleFunc("/trip", api.getAllTrips)
+
+	// Get trips of user
+	//http.HandleFunc("/trip/", api.getUserTrips)
+
+	// Post new trip
+	//http.HandleFunc("/upload", api.uploadTrip)
 
 	log.Printf("Listening on :%s", PORT)
 	http.ListenAndServe(":"+PORT, nil)
