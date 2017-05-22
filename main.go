@@ -42,7 +42,7 @@ func main() {
 	api := api{db: db}
 
 	// Get all locations
-	http.HandleFunc("/location", api.getAllLocations)
+	http.HandleFunc("/location", BasicAuth(api.getAllLocations))
 
 	// Get locations of user
 	http.HandleFunc("/location/", api.getUserLocations)
