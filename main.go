@@ -53,7 +53,6 @@ func main() {
 	// Get trips of user
 	//http.HandleFunc("/trip/", api.getUserTrips)
 
-	// Post new trip
 	http.HandleFunc("/upload", api.uploadTrip)
 
 	log.Printf("Listening on :%s", PORT)
