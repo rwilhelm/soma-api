@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	PRIV   = "/etc/letsencrypt/live/soma.uni-koblenz.de/privkey.pem"
+	KEY    = "/etc/letsencrypt/live/soma.uni-koblenz.de/privkey.pem"
 	CERT   = "/etc/letsencrypt/live/soma.uni-koblenz.de/cert.pem"
 	DBUSER = "asdf"
 	DBPASS = "qwer"
@@ -54,10 +54,10 @@ func main() {
 	//http.HandleFunc("/trip/", api.getUserTrips)
 
 	// Post new trip
-	//http.HandleFunc("/upload", api.uploadTrip)
+	http.HandleFunc("/upload", api.uploadTrip)
 
 	log.Printf("Listening on :%s", PORT)
-	http.ListenAndServe(":"+PORT, nil)
+	http.ListenAndServeTLS(":"+PORT, CERT, KEY, nil)
 }
 
 func logger(h http.Handler) http.Handler {
