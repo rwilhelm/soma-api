@@ -15,7 +15,7 @@ const (
 	DBUSER = "asdf"
 	DBPASS = "qwer"
 	DBNAME = "soma_development"
-	PORT   = "3333"
+	PORT   = "5000"
 )
 
 type api struct {
@@ -45,6 +45,7 @@ func main() {
 	http.HandleFunc("/location", BasicAuth(api.getAllLocations))
 
 	// Get locations of user
+	// curl https://soma.uni-koblenz.de:5000/location/cfcad754069f612a
 	http.HandleFunc("/location/", api.getUserLocations)
 
 	// Get all trips
@@ -57,6 +58,7 @@ func main() {
 
 	log.Printf("Listening on :%s", PORT)
 	http.ListenAndServeTLS(":"+PORT, CERT, KEY, nil)
+	//http.ListenAndServe(":"+PORT, nil)
 }
 
 func logger(h http.Handler) http.Handler {

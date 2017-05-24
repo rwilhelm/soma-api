@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"unsafe"
 
 	_ "github.com/lib/pq"
 )
@@ -131,6 +130,13 @@ func (a *api) uploadTrip(w http.ResponseWriter, r *http.Request) { // {{{
 		d        Trip
 	)
 
+	//bodyBytes, err2 := ioutil.ReadAll(r.Body)
+	//if err2 != nil {
+	//	log.Println("err2", err2)
+	//}
+
+	//log.Println("Body: ", string(bodyBytes))
+
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&d)
 
@@ -171,8 +177,6 @@ func (a *api) uploadTrip(w http.ResponseWriter, r *http.Request) { // {{{
 	err = a.db.QueryRow(`
 	INSERT INTO trip (uuid, client_id) VALUES ($1, $2) RETURNING id`, d.TripUUID, clientID).Scan(&tripID)
 	handleError(err)
-
-	//log.Printf("%s -> %d -> %d", d.TripUUID, clientID, tripID)
 
 	var locationsInserted int64
 	for _, l := range d.Locations {
