@@ -56,6 +56,8 @@ func main() {
 
 	http.HandleFunc("/upload", api.uploadTrip)
 
+	http.HandleFunc("/token/new", BasicAuth(api.generateToken))
+
 	log.Printf("Listening on :%s", PORT)
 	http.ListenAndServeTLS(":"+PORT, CERT, KEY, nil)
 	//http.ListenAndServe(":"+PORT, nil)

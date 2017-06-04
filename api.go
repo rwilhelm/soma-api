@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -25,6 +26,15 @@ type Trip struct {
 	ClientUUID string     `json:"device_id"`
 	Locations  []Location `json:"locationData"`
 }
+
+const (
+	surveyID = 2 // XXX
+)
+
+var (
+	surveyURL  = fmt.Sprintf("https://soma.uni-koblenz.de/limesurvey/index.php?r=survey/index&sid=%d&lang=de", surveyID)
+	tokenTable = fmt.Sprintf("lime_tokens_%d", surveyID)
+)
 
 func (a *api) getAllLocations(w http.ResponseWriter, r *http.Request) { // {{{
 
@@ -198,6 +208,36 @@ func (a *api) uploadTrip(w http.ResponseWriter, r *http.Request) { // {{{
 	log.Printf("[INCOMING] c:%d/%s t:%d/%s l:%d", clientID, d.ClientUUID, tripID, d.TripUUID, locationsInserted)
 	w.Header().Add("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
+} // }}}
+
+func (a *api) generateToken(w http.ResponseWriter, r *http.Request) { // {{{
+
+	deviceID := r.URL.Query().Get("c")
+
+	if len(deviceID) == 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		log.Println("[BAD REQUEST] Pass the client id as URL parameter, like ...&c=cfcad754069f61l")
+		return
+	}
+
+	// Delete all other tokens.
+	_, err1 := a.db.Query(fmt.Sprintf("DELETE FROM %s WHERE participant_id = $1", tokenTable), deviceID)
+	handleError(err1)
+
+	// Insert device id and token into the survey's token table.
+	// FIXME deviceID == clientID == participant_id
+	stmt := fmt.Sprintf("INSERT INTO %s (participant_id, token) VALUES ($1, $2)", tokenTable)
+	token := RandStringBytesMaskImprSrc(15)
+	_, err := a.db.Query(stmt, deviceID, token)
+	handleError(err)
+
+	log.Printf("[TOKEN] client:%s token:%s", deviceID, token)
+	w.WriteHeader(http.StatusOK)
+
+	// Return the URL leading to the survey, including the token.
+	// TODO Send FCM message from here, like: generateToken() -> sendNotification()
+	url := fmt.Sprintf("%s&token=%s\n", surveyURL, token)
+	fmt.Fprintf(w, url)
 } // }}}
 
 func eatRows(rows *sql.Rows) (d Trip) {
