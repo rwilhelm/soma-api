@@ -186,7 +186,11 @@ func (a *api) uploadTrip(w http.ResponseWriter, r *http.Request) { // {{{
 
 	err = a.db.QueryRow(`
 	INSERT INTO trip (uuid, client_id) VALUES ($1, $2) RETURNING id`, d.TripUUID, clientID).Scan(&tripID)
-	handleError(err)
+	if err != nil {
+		log.Println(err)
+		log.Println("DUPLICATE TRIP ID ... DO NOT TAKE")
+		return
+	}
 
 	var locationsInserted int64
 	for _, l := range d.Locations {
