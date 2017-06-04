@@ -5,15 +5,15 @@ const (
 	PORT = "5000"
 
 	// Certificates
-	CERT = "path_to_cert_pem"
-	KEY  = "path_to_privkey_pem"
+	CERT = "/etc/letsencrypt/live/soma.uni-koblenz.de/cert.pem"
+	KEY  = "/etc/letsencrypt/live/soma.uni-koblenz.de/privkey.pem"
 
 	// Basic Auth
-	BAPASS = "xxx"
-	BAUSER = "xxx"
+	BAPASS = "bla"
+	BAUSER = "asdf"
 
 	// Database
-	DBNAME = "xxx"
-	DBPASS = "xxx"
-	DBUSER = "xxx"
+	DBNAME = "soma_development"
+	DBPASS = "qwer"
+	DBUSER = "asdf"
 )
