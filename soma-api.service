@@ -1,0 +1,13 @@
+[Unit]
+Description=SoMA API
+
+[Service]
+PIDFile=/tmp/soma-api.pid
+User=asdf
+Group=asdf
+WorkingDirectory=/home/asdf/go/src/github.com/rwilhelm/soma-api
+ExecStart=/home/asdf
+
+[Install]
+WantedBy=multi-user.target
+
