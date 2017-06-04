@@ -12,7 +12,7 @@ func BasicAuth(pass http.HandlerFunc) http.HandlerFunc {
 
 		const realm = ""
 
-		if username != "asdf" || password != "bla" {
+		if username != BAUSER || password != BAPASS {
 			w.Header().Set("WWW-Authenticate", `Basic realm="`+realm+`"`)
 			http.Error(w, "authorization failed", http.StatusUnauthorized)
 			return

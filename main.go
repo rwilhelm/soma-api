@@ -9,15 +9,6 @@ import (
 	_ "github.com/lib/pq"
 )
 
-const (
-	KEY    = "/etc/letsencrypt/live/soma.uni-koblenz.de/privkey.pem"
-	CERT   = "/etc/letsencrypt/live/soma.uni-koblenz.de/cert.pem"
-	DBUSER = "asdf"
-	DBPASS = "qwer"
-	DBNAME = "soma_development"
-	PORT   = "5000"
-)
-
 type api struct {
 	db *sql.DB
 }
