@@ -27,6 +27,11 @@ type Trip struct {
 	Locations  []Location `json:"locationData"`
 }
 
+type Token struct {
+	FCMToken   string `json:"token"`
+	ClientUUID string `json:"device_id"`
+}
+
 const (
 	surveyID = 2 // XXX
 )
@@ -137,6 +142,7 @@ func (a *api) uploadTrip(w http.ResponseWriter, r *http.Request) { // {{{
 	var (
 		clientID int
 		tripID   int
+		token    string
 		d        Trip
 	)
 
@@ -176,13 +182,38 @@ func (a *api) uploadTrip(w http.ResponseWriter, r *http.Request) { // {{{
 		return
 	}
 
+	// Handle user creation. The first time a user posts some data, a new entry
+	// in the client table is made.
 	err = a.db.QueryRow(`
 	SELECT id FROM client WHERE device_id = $1`, d.ClientUUID).Scan(&clientID)
 	if err != nil {
+		// Create new user.
+		log.Println("[USER] Creating new user")
 		err = a.db.QueryRow(`
 		INSERT INTO client (device_id) VALUES ($1) RETURNING id`, d.ClientUUID).Scan(&clientID)
 		handleError(err)
+	} else {
+		log.Println("[USER] Found existing user")
 	}
+
+	// Handle token. Generate a new one if there is none. This should guarantee
+	// that every user has exactly one token, always.  The token is directly
+	// inserted into LimeSurvey's token table for the configured survey id (see
+	// above).
+	tokenErr := a.db.QueryRow(fmt.Sprintf("SELECT token FROM %s WHERE participant_id = $1", tokenTable), clientID).Scan(&token)
+	if tokenErr != nil {
+		log.Println("[TOKEN] Creating new token")
+		// Insert client id and token into the survey's token table.
+		stmt := fmt.Sprintf("INSERT INTO %s (participant_id, token) VALUES ($1, $2) RETURNING token", tokenTable)
+		err := a.db.QueryRow(stmt, clientID, RandStringBytesMaskImprSrc(15)).Scan(&token)
+		handleError(err)
+	} else {
+		log.Println("[TOKEN] Found existing token")
+	}
+
+	log.Println("[TOKEN]", token)
+
+	// TODO Route to refreshToken(id)
 
 	err = a.db.QueryRow(`
 	INSERT INTO trip (uuid, client_id) VALUES ($1, $2) RETURNING id`, d.TripUUID, clientID).Scan(&tripID)
