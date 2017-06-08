@@ -32,21 +32,16 @@ func main() {
 
 	api := api{db: db}
 
+	http.HandleFunc("/upload", api.uploadTrip)
+
 	// Get all locations
 	http.HandleFunc("/location", BasicAuth(api.getAllLocations))
 
-	// Get locations of user
-	// curl https://soma.uni-koblenz.de:5000/location/cfcad754069f612a
-	http.HandleFunc("/location/", api.getUserLocations)
+	// Get all or a user's locations
+	// curl https://soma.uni-koblenz.de:5000/location/:id
+	http.HandleFunc("/location/", BasicAuth(api.getUserLocations))
 
-	// Get all trips
-	//http.HandleFunc("/trip", api.getAllTrips)
-
-	// Get trips of user
-	//http.HandleFunc("/trip/", api.getUserTrips)
-
-	http.HandleFunc("/upload", api.uploadTrip)
-
+	// Generate a new LimeSurvey token for ...?q=<id>
 	http.HandleFunc("/token/new", BasicAuth(api.generateToken))
 
 	log.Printf("Listening on :%s", PORT)
